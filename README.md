@@ -78,6 +78,12 @@ outlaws_lob_game/
 - **`TrainyardScene`**: Trainyard subway train spray canvas scene with interactive spraying, cop AI, and environmental hazards.
 - **`Prefabs Architecture`**: Decoupled interactive actors under `src/ice37_outlaw_html5/game/js/prefabs/` (`Player`, `Cop`, `Backpack`, `SprayCanvas`, `CameraHud`, `GalleryOverlay`, `DevControls`, `Blende`, `Hud`) guaranteeing consistent combat state machines, hitboxes, and controls across all scenes.
 
+## Credits & Attribution
+
+- **Original Game:** Outlaw / Lords of Brooklyn by ICE37
+- **Character Artwork & Graphics:** **OLD**
+- **Official Website:** [www.ice37.de](https://www.ice37.de)
+
 ---
 
 ## License

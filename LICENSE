@@ -11,11 +11,11 @@ use, copy, modify, merge, publish, distribute, sublicense, or sell copies of thi
 assets for public or commercial purposes.
 
 2. ASSET & TRADEMARK NOTICE
-"Lords of Brooklyn", "ICE37", and all original artwork, audio compositions, characters,
-and game design elements remain the property of their respective copyright holders.
-Original binary Flash (.swf) files are explicitly excluded from repository distribution.
-This codebase is maintained strictly for private preservation, engineering analysis, and
-modernization research.
+"Lords of Brooklyn", "Outlaw", "ICE37" (www.ice37.de), and all original artwork, character graphics
+created by artist OLD, audio compositions, characters, and game design elements remain the
+property of their respective copyright holders. Original binary Flash (.swf) files are explicitly
+excluded from repository distribution. This codebase is maintained strictly for private preservation,
+engineering analysis, and modernization research.
 
 3. RESTRICTION ON REDISTRIBUTION
 Unauthorized copying, extraction, distribution, public hosting, or deployment of any portion
