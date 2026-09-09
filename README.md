@@ -6,7 +6,7 @@ Enterprise repository for modernizing and preserving **Lords of Brooklyn / Outla
 
 ## Project Background & Porting
 
-This project is a modern HTML5 porting and preservation effort of the original Flash game **Lords of Brooklyn / Outlaw** (Urban Graffiti & 2D Beat 'Em Up Street Fighter).
+This project is a modern HTML5 porting and preservation effort of the original Flash game **Lords of Brooklyn / Outlaw** created by the artist **OLD** ([www.ice37.de](https://www.ice37.de)) (Urban Graffiti & 2D Beat 'Em Up Street Fighter).
 
 - **Original Stack:** ActionScript 2.0 (Flash SWF).
 - **Modern Stack:** Native HTML5 Canvas powered by Phaser 3.80.
@@ -80,9 +80,10 @@ outlaws_lob_game/
 
 ## Credits & Attribution
 
-- **Original Game:** Outlaw / Lords of Brooklyn by ICE37
-- **Character Artwork & Graphics:** **OLD**
-- **Official Website:** [www.ice37.de](https://www.ice37.de)
+- **Original Game Creation & Game Design:** **OLD**
+- **Character Artwork & Visual Assets:** **OLD**
+- **Official Creator Website:** [www.ice37.de](https://www.ice37.de)
+- **Original Flash Title:** Outlaw / Lords of Brooklyn
 
 ---
 
