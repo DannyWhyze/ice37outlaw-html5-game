@@ -1,0 +1,30 @@
+# Dependencies
+node_modules/
+
+# Build and test output
+dist/
+build/
+coverage/
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+*.log
+
+# Editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+.agents/
+created_images/
+docs_dw/
+/public
+src/option1_ruffle/
+src/ice37_outlaw_html5/tools
+src/ice37_outlaw_html5/extracted
+src/ice37_outlaw_html5/game/gallery/
+AGENTS.md

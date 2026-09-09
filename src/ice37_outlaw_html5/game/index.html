@@ -1,0 +1,211 @@
+<!DOCTYPE HTML>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="data:,">
+    <title>Outlaw - Native HTML5 Game</title>
+    <style>
+        @font-face {
+            font-family: 'Typist';
+            src: url('assets/fonts/Typist.woff') format('woff'),
+                 url('assets/fonts/Typist.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        @font-face {
+            font-family: 'Stencil';
+            src: url('assets/fonts/Stencil.ttf') format('truetype');
+            font-weight: normal;
+            font-style: normal;
+        }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            background-color: #111111;
+            color: #eeeeee;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 15px;
+            overflow: hidden;
+        }
+        header {
+            width: 100%;
+            max-width: calc((100vh - 100px) * 16 / 9);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+        .header-title {
+            text-align: left;
+        }
+        h1 {
+            color: #99CC00;
+            font-size: 1.6rem;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            line-height: 1.1;
+        }
+        #game-container {
+            width: 100%;
+            height: calc(100vh - 100px);
+            max-width: calc((100vh - 100px) * 16 / 9);
+            max-height: calc(100vw * 9 / 16);
+            aspect-ratio: 16 / 9;
+            background-color: #000000;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #game-container canvas {
+            margin: 0 !important;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            image-rendering: auto;
+        }
+        .controls-bar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            margin: 0;
+        }
+        .btn-control {
+            background-color: #222222;
+            color: #99CC00;
+            border: 1px solid #99CC00;
+            padding: 6px 14px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            border-radius: 4px;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            transition: all 0.2s ease-in-out;
+            white-space: nowrap;
+        }
+        .btn-control:hover {
+            background-color: #99CC00;
+            color: #121212;
+            box-shadow: 0 0 10px rgba(153, 204, 0, 0.5);
+        }
+        .badge {
+            display: inline-block;
+            background: #222222;
+            border: 1px solid #444444;
+            padding: 4px 10px;
+            border-radius: 4px;
+            color: #aaaaaa;
+        }
+        .font-preload {
+            position: absolute;
+            left: -9999px;
+            top: -9999px;
+            visibility: hidden;
+        }
+        .font-preload-typist {
+            font-family: 'Typist';
+        }
+        .font-preload-stencil {
+            font-family: 'Stencil';
+        }
+    </style>
+
+    <!-- Phaser 3 2D Game Engine -->
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
+
+    <!-- Global Logic Modules -->
+    <script src="js/logic/canInventory.js?v=1080p"></script>
+    <script src="js/logic/sprayPaint.js?v=1080p"></script>
+    <script src="js/logic/toolCursor.js?v=1080p"></script>
+    <script src="js/logic/backpackPalette.js?v=1080p"></script>
+    <script src="js/logic/playerCombat.js?v=1080p"></script>
+    <script src="js/logic/playerDeath.js?v=1080p"></script>
+    <script src="js/logic/playerHurt.js?v=1080p"></script>
+    <script src="js/logic/copLogic.js?v=1080p"></script>
+    <script src="js/logic/copCombat.js?v=1080p"></script>
+    <script src="js/logic/copHurt.js?v=1080p"></script>
+    <script src="js/logic/copDeath.js?v=1080p"></script>
+    <script src="js/logic/combatCollision.js?v=1080p"></script>
+    <script src="js/logic/copSpawner.js?v=1080p"></script>
+    <script src="js/logic/playerControls.js?v=1080p"></script>
+    <script src="js/logic/soundFx.js?v=1080p"></script>
+    <script src="js/logic/galleryStorage.js?v=1080p_hd"></script>
+
+    <!-- Game Scenes -->
+    <script src="js/BootScene.js?v=1080p_hd"></script>
+    <script src="js/startNativeLayout.js?v=1080p"></script>
+    <script src="js/StartScene.js?v=1080p"></script>
+    <script src="js/menuNavigation.js?v=1080p"></script>
+    <script src="js/MenuScene.js?v=1080p_hd"></script>
+    <script src="js/HomeScene.js?v=1080p_hd"></script>
+
+    <!-- Global Prefabs -->
+    <script src="js/prefabs/Player.js"></script>
+    <script src="js/prefabs/Backpack.js"></script>
+    <script src="js/prefabs/Cop.js"></script>
+    <script src="js/prefabs/DevControls.js"></script>
+    <script src="js/prefabs/Hud.js?v=1080p_score"></script>
+    <script src="js/prefabs/Blende.js?v=1080p_hd"></script>
+    <script src="js/prefabs/CameraHud.js?v=1080p_hd"></script>
+    <script src="js/prefabs/GalleryOverlay.js?v=1080p_hd"></script>
+    <script src="js/prefabs/SprayCanvas.js"></script>
+
+    <!-- Hall of Fame Scene & Modules -->
+    <script src="js/halloffame/halloffameNativeLayout.js?v=1080p"></script>
+    <script src="js/halloffame/HallOfFameScene.js?v=1080p"></script>
+
+    <!-- Street Scene & Modules -->
+    <script src="js/street/streetNativeLayout.js"></script>
+    <script src="js/street/StreetScene.js"></script>
+
+    <!-- Trainyard Scene & Modules -->
+    <script src="js/trainyard/trainyardNativeLayout.js"></script>
+    <script src="js/trainyard/TrainyardScene.js"></script>
+    <script src="js/main.js"></script>
+</head>
+<body>
+    <div class="font-preload font-preload-typist" aria-hidden="true">0123456789</div>
+    <div class="font-preload font-preload-stencil" aria-hidden="true">GALLERY</div>
+
+    <header>
+        <div class="header-title">
+            <h1>Outlaw</h1>
+        </div>
+        <div class="controls-bar">
+            <button id="btn-fullscreen" class="btn-control">[Vollbild]</button>
+        </div>
+    </header>
+
+    <main id="game-container"></main>
+
+    <script>
+        const btnFullscreen = document.getElementById('btn-fullscreen');
+        if (btnFullscreen) {
+            btnFullscreen.addEventListener('click', () => {
+                const container = document.getElementById('game-container');
+                if (!document.fullscreenElement) {
+                    if (container && container.requestFullscreen) {
+                        container.requestFullscreen();
+                    }
+                } else {
+                    if (document.exitFullscreen) {
+                        document.exitFullscreen();
+                    }
+                }
+            });
+        }
+    </script>
+</body>
+</html>
