@@ -2,7 +2,7 @@
     'use strict';
 
     const TOTAL_TICKS = 5;
-    const TICK_DURATION_MS = 1000.0 / 12.0; // ~83.33 ms at 12 FPS
+    const TICK_DURATION_MS = 1000.0 / 25.0; // 40.0ms at 25 FPS
 
     const FRAME_KEYS = Object.freeze({
         character: 'cop_hurt_character',

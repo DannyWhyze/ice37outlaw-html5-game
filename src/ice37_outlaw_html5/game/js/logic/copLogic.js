@@ -2,7 +2,7 @@
     'use strict';
 
     const TOTAL_WALK_TICKS = 12;
-    const TICK_DURATION_MS = 1000.0 / 12.0; // 83.333ms per Flash tick at 12 FPS
+    const TICK_DURATION_MS = 1000.0 / 25.0; // 40.0ms per Flash tick at 25 FPS
 
     // 5 exported images at 125% zoom matching Flash DefineSprite 17
     const FRAME_KEYS = Object.freeze([
@@ -33,11 +33,11 @@
         y: 1.0,
     });
 
-    // Flash copspeed = 4 px/frame at 12 FPS -> 48 px/s Flash stage.
+    // Flash copspeed = 4 px every 2 frames at 25 FPS -> 12.5 steps/s (50 px/s Flash stage).
     // In native 1080p canvas (stage scale = 1920 / 546):
     const FLASH_COPSPEED = 4;
     const NATIVE_STAGE_SCALE = 1920.0 / 546.0;
-    const NATIVE_COPSPEED_PER_SEC = FLASH_COPSPEED * NATIVE_STAGE_SCALE * 12.0; // ~168.79 px/s
+    const NATIVE_COPSPEED_PER_SEC = FLASH_COPSPEED * NATIVE_STAGE_SCALE * 12.5; // ~175.82 px/s
 
     function getWalkState(tick) {
         // Clamp tick to 1..TOTAL_WALK_TICKS or wrap for looping

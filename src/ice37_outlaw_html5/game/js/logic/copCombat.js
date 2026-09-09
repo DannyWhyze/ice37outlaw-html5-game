@@ -1,9 +1,9 @@
 (function attachCopCombat(globalScope) {
     'use strict';
 
-    // 20 Flash frames at 12 FPS
+    // 20 Flash frames at 25 FPS
     const TOTAL_TICKS = 20;
-    const TICK_DURATION_MS = 1000.0 / 12.0; // 83.333ms per Flash tick
+    const TICK_DURATION_MS = 1000.0 / 25.0; // 40.0ms per Flash tick at 25 FPS
 
     // 6 exported keyframes at 352% zoom matching Flash DefineSprite 29 (or 26 in street)
     const FRAME_KEYS = Object.freeze([

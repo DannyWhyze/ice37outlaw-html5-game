@@ -55,7 +55,7 @@
             this.deathComplete = false;
             this.hitCount = 0;
             this.maxHits = 3;
-            this.speed = CopLogic ? CopLogic.NATIVE_COPSPEED_PER_SEC : 168.79;
+            this.speed = CopLogic ? CopLogic.NATIVE_COPSPEED_PER_SEC : 175.82;
 
             // Root container
             this.container = scene.add.container(x, y).setDepth(37);
@@ -202,7 +202,7 @@
                 scene.anims.create({
                     key: 'cop_walk',
                     frames,
-                    frameRate: 12,
+                    frameRate: 25,
                     repeat: -1,
                 });
             }

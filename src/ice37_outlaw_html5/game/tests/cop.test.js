@@ -102,7 +102,7 @@ test('verifies native 130% zoom cop walk assets exist on disk with valid 295x518
 
 test('provides correct timing and 12-tick timeline constants for Cop walk', () => {
     assert.equal(CopLogic.TOTAL_WALK_TICKS, 12);
-    assert.ok(Math.abs(CopLogic.TICK_DURATION_MS - (1000 / 12)) < 0.01);
+    assert.ok(Math.abs(CopLogic.TICK_DURATION_MS - (1000 / 25)) < 0.01);
     assert.equal(CopLogic.FRAME_KEYS.length, 5);
     assert.equal(CopLogic.TICK_TO_FRAME_INDEX.length, 12);
 
@@ -129,7 +129,7 @@ test('provides correct timing and 12-tick timeline constants for Cop walk', () =
     assert.equal(CopLogic.FRAME_DIMENSIONS.height, 518);
     assert.equal(CopLogic.SHAPE_ORIGIN.x, 0.5);
     assert.equal(CopLogic.SHAPE_ORIGIN.y, 1.0);
-    assert.ok(Math.abs(CopLogic.NATIVE_COPSPEED_PER_SEC - 168.79) < 0.1);
+    assert.ok(Math.abs(CopLogic.NATIVE_COPSPEED_PER_SEC - 175.82) < 0.1);
 });
 
 test('computes correct walk state and advances walk ticks accurately', () => {
@@ -155,16 +155,16 @@ test('computes correct walk state and advances walk ticks accurately', () => {
     assert.equal(stateWrap.frameKey, 'cop_walk_01');
 
     // advanceWalk
-    const adv1 = CopLogic.advanceWalk(1, 84, 0);
+    const adv1 = CopLogic.advanceWalk(1, 40, 0);
     assert.equal(adv1.tick, 2);
     assert.equal(adv1.state.frameKey, 'cop_walk_01');
 
-    const adv2 = CopLogic.advanceWalk(2, 84, 0);
+    const adv2 = CopLogic.advanceWalk(2, 40, 0);
     assert.equal(adv2.tick, 3);
     assert.equal(adv2.state.frameKey, 'cop_walk_02');
 
     // Multi-tick advancement
-    const advMulti = CopLogic.advanceWalk(1, 84 * 5, 0);
+    const advMulti = CopLogic.advanceWalk(1, 40 * 5, 0);
     assert.equal(advMulti.tick, 6);
     assert.equal(advMulti.state.frameKey, 'cop_walk_03');
 });
@@ -280,12 +280,12 @@ test('computes boxing states and advances boxing ticks accurately in CopCombat',
     assert.equal(s20.isComplete, true);
 
     // advanceBoxing
-    const adv = CopCombat.advanceBoxing(1, 84 * 8, 0); // advance to tick 9
+    const adv = CopCombat.advanceBoxing(1, 40 * 8, 0); // advance to tick 9
     assert.equal(adv.tick, 9);
     assert.equal(adv.state.isHit, true);
     assert.equal(adv.isComplete, false);
 
-    const advEnd = CopCombat.advanceBoxing(1, 84 * 25, 0); // past tick 20
+    const advEnd = CopCombat.advanceBoxing(1, 40 * 25, 0); // past tick 20
     assert.equal(advEnd.tick, 20);
     assert.equal(advEnd.isComplete, true);
 });
@@ -318,7 +318,7 @@ test('instantiates Cop prefab with container, shadow, walkSprite, boxingSprite, 
     assert.ok(scene.anims.exists('cop_walk'));
     const anim = scene.anims.get('cop_walk');
     assert.equal(anim.frames.length, 12);
-    assert.equal(anim.frameRate, 12);
+    assert.equal(anim.frameRate, 25);
     assert.equal(anim.repeat, -1);
 });
 
@@ -413,27 +413,27 @@ test('handles Cop boxing animation lifecycle, hit callback at tick 9, and comple
     assert.equal(cop.boxingSprite.visible, true);
     assert.equal(cop.boxingSprite.texture, 'cop_boxing_01');
 
-    // Advance 4 ticks (~336ms) -> tick 5 (cop_boxing_05)
-    const s1 = cop.update(84 * 4, 1000, 40, () => { hitFiredCount++; });
+    // Advance 4 ticks (~160ms) -> tick 5 (cop_boxing_05)
+    const s1 = cop.update(40 * 4, 1000, 40, () => { hitFiredCount++; });
     assert.equal(s1, 'boxing');
     assert.equal(cop.boxingTick, 5);
     assert.equal(cop.boxingSprite.texture, 'cop_boxing_05');
     assert.equal(hitFiredCount, 0);
 
-    // Advance 4 more ticks (~336ms) -> tick 9 (cop_boxing_09, hit window!)
-    const s2 = cop.update(84 * 4, 1000, 40, () => { hitFiredCount++; });
+    // Advance 4 more ticks (~160ms) -> tick 9 (cop_boxing_09, hit window!)
+    const s2 = cop.update(40 * 4, 1000, 40, () => { hitFiredCount++; });
     assert.equal(s2, 'boxing');
     assert.equal(cop.boxingTick, 9);
     assert.equal(cop.boxingSprite.texture, 'cop_boxing_09');
     assert.equal(hitFiredCount, 1); // Hit fired!
 
     // Advance 1 tick -> tick 10 (still in hit window, but hit callback fires only once per punch!)
-    cop.update(84, 1000, 40, () => { hitFiredCount++; });
+    cop.update(40, 1000, 40, () => { hitFiredCount++; });
     assert.equal(cop.boxingTick, 10);
     assert.equal(hitFiredCount, 1); // Not duplicate!
 
-    // Advance to end of boxing (tick 20, ~900ms more)
-    cop.update(84 * 12, 1000, 40, () => { hitFiredCount++; });
+    // Advance to end of boxing (tick 20, ~440ms more)
+    cop.update(40 * 12, 1000, 40, () => { hitFiredCount++; });
     assert.equal(cop.isBoxing, false);
     assert.equal(cop.boxingSprite.visible, false);
     assert.equal(cop.walkSprite.visible, true);
@@ -459,7 +459,7 @@ test('verifies native 130% zoom cop hurt assets exist on disk with valid dimensi
 
 test('provides correct timing, 5-tick timeline, origins, offsets, and blood drop trajectories for Cop hurt in CopHurt', () => {
     assert.equal(CopHurt.TOTAL_TICKS, 5);
-    assert.ok(Math.abs(CopHurt.TICK_DURATION_MS - (1000 / 12)) < 0.01);
+    assert.ok(Math.abs(CopHurt.TICK_DURATION_MS - (1000 / 25)) < 0.01);
     assert.equal(CopHurt.FRAME_KEYS.character, 'cop_hurt_character');
     assert.equal(CopHurt.FRAME_KEYS.bloodDrop, 'cop_hurt_blood_drop');
 
@@ -505,11 +505,11 @@ test('computes hurt states and advances hurt ticks accurately in CopHurt', () =>
     assert.equal(s5.drop1.scaleX, 0.94);
 
     // advanceHurt
-    const adv1 = CopHurt.advanceHurt(1, 84 * 2, 0); // advance 2 ticks -> tick 3
+    const adv1 = CopHurt.advanceHurt(1, 40 * 2, 0); // advance 2 ticks -> tick 3
     assert.equal(adv1.tick, 3);
     assert.equal(adv1.isComplete, false);
 
-    const advPastEnd = CopHurt.advanceHurt(1, 84 * 10, 0); // past tick 5
+    const advPastEnd = CopHurt.advanceHurt(1, 40 * 10, 0); // past tick 5
     assert.equal(advPastEnd.tick, 5);
     assert.equal(advPastEnd.isComplete, true);
 });
@@ -533,8 +533,8 @@ test('handles Cop hurt animation lifecycle, blood drop positioning, and completi
     assert.equal(cop.hurtBloodDrop2.visible, true);
     assert.equal(cop.hurtSprite.texture, 'cop_hurt_character');
 
-    // Update 2 ticks (~168ms) -> tick 3
-    const stateMid = cop.update(84 * 2);
+    // Update 2 ticks (~80ms) -> tick 3
+    const stateMid = cop.update(40 * 2);
     assert.equal(stateMid, 'hurt');
     assert.equal(cop.hurtTick, 3);
     assert.equal(cop.hurtBloodDrop1.scaleX, 0.542);
@@ -542,8 +542,8 @@ test('handles Cop hurt animation lifecycle, blood drop positioning, and completi
     assert.equal(cop.hurtBloodDrop2.scaleY, 0.691);
     assert.equal(hurtCompleted, false);
 
-    // Update 3 more ticks (~252ms) -> completion
-    const stateEnd = cop.update(84 * 4);
+    // Update 3 more ticks (~120ms) -> completion
+    const stateEnd = cop.update(40 * 4);
     assert.equal(cop.isHurt, false);
     assert.equal(cop.hurtSprite.visible, false);
     assert.equal(cop.hurtBloodDrop1.visible, false);
@@ -577,7 +577,7 @@ test('verifies native 130% zoom cop death assets exist on disk with valid dimens
 
 test('provides correct timing, 30-tick timeline, origins, offsets, and trajectories for Cop death in CopDeath', () => {
     assert.equal(CopDeath.TOTAL_TICKS, 30);
-    assert.ok(Math.abs(CopDeath.TICK_DURATION_MS - (1000 / 12)) < 0.01);
+    assert.ok(Math.abs(CopDeath.TICK_DURATION_MS - (1000 / 25)) < 0.01);
     assert.equal(CopDeath.FRAME_KEYS.character, 'cop_death_character');
     assert.equal(CopDeath.FRAME_KEYS.cap, 'cop_death_cap');
     assert.equal(CopDeath.FRAME_KEYS.star, 'cop_death_star');
@@ -644,17 +644,17 @@ test('provides correct timing, 30-tick timeline, origins, offsets, and trajector
 
 test('computes death states and advances death ticks accurately in CopDeath', () => {
     // advanceDeath
-    const adv1 = CopDeath.advanceDeath(1, 84 * 6, 0); // advance to tick 7
+    const adv1 = CopDeath.advanceDeath(1, 40 * 6, 0); // advance to tick 7
     assert.equal(adv1.tick, 7);
     assert.equal(adv1.state.star.scale, 7.0);
     assert.equal(adv1.state.characterVisible, false);
     assert.equal(adv1.isComplete, false);
 
-    const adv2 = CopDeath.advanceDeath(7, 84, 0); // advance to tick 8
+    const adv2 = CopDeath.advanceDeath(7, 40, 0); // advance to tick 8
     assert.equal(adv2.tick, 8);
     assert.equal(adv2.state.star.visible, false);
 
-    const advEnd = CopDeath.advanceDeath(1, 84 * 35, 0); // past tick 30
+    const advEnd = CopDeath.advanceDeath(1, 40 * 35, 0); // past tick 30
     assert.equal(advEnd.tick, 30);
     assert.equal(advEnd.isComplete, true);
 });
@@ -681,8 +681,8 @@ test('handles Cop death animation lifecycle, cap trajectory, star scaling, and c
     assert.equal(cop.deathCap.visible, true);
     assert.equal(cop.deathStar.visible, true);
 
-    // Update 6 ticks (~500ms) -> tick 7 (star maximum expansion 7.0, body disappeared!)
-    const stateMid = cop.update(84 * 6);
+    // Update 6 ticks (~240ms) -> tick 7 (star maximum expansion 7.0, body disappeared!)
+    const stateMid = cop.update(40 * 6);
     assert.equal(stateMid, 'death');
     assert.equal(cop.deathTick, 7);
     assert.equal(cop.deathSprite.visible, false); // Body has disappeared!
@@ -699,27 +699,27 @@ test('handles Cop death animation lifecycle, cap trajectory, star scaling, and c
     assert.equal(cop.hurtSprite.visible, false);
 
     // Update 1 more tick -> tick 8 (star hidden, cap glides alone!)
-    cop.update(84);
+    cop.update(40);
     assert.equal(cop.deathTick, 8);
     assert.equal(cop.deathStar.visible, false);
     assert.equal(cop.deathCap.visible, true);
     assert.equal(cop.deathCap.alpha, 1.0);
 
     // Advance 15 ticks -> tick 23 (cap begins fading out)
-    cop.update(84 * 15);
+    cop.update(40 * 15);
     assert.equal(cop.deathTick, 23);
     assert.ok(Math.abs(cop.deathCap.alpha - (194 / 256)) < 0.001);
     assert.equal(cop.deathCap.visible, true);
 
     // Advance 7 ticks -> tick 30 (cap landed at final position with alpha 3/256)
-    cop.update(84 * 7);
+    cop.update(40 * 7);
     assert.equal(cop.deathTick, 30);
     assert.ok(Math.abs(cop.deathCap.alpha - (3 / 256)) < 0.001);
     assert.equal(cop.deathCap.visible, true);
     assert.equal(deathCallbackFired, false);
 
     // Advance 1 more tick -> past tick 30 (death completes, cap removed from stage)
-    cop.update(84);
+    cop.update(40);
     assert.equal(deathCallbackFired, true);
     assert.equal(cop.deathComplete, true);
     assert.equal(cop.deathCap.visible, false);
@@ -752,7 +752,7 @@ test('handles Cop applyHit progression (hits 1-2 hurt, hit 3 triggers death) and
 
     // Finish hurt animation
     for (let i = 0; i < 6; i++) {
-        cop.update(84);
+        cop.update(40);
     }
     assert.equal(cop.isHurt, false);
 
@@ -765,7 +765,7 @@ test('handles Cop applyHit progression (hits 1-2 hurt, hit 3 triggers death) and
 
     // Finish hurt animation
     for (let i = 0; i < 6; i++) {
-        cop.update(84);
+        cop.update(40);
     }
     assert.equal(cop.isHurt, false);
 
@@ -850,7 +850,7 @@ test('handles Cop lifecycle: isSpawned initialization, spawn, despawn and death 
     assert.equal(cop.isSpawned, true);
 
     // Advance past tick 30 to complete death
-    cop.update(84 * 35);
+    cop.update(40 * 35);
     assert.equal(deathNotified, true);
     assert.equal(cop.deathComplete, true);
     assert.equal(cop.isSpawned, false);

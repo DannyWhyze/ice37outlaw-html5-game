@@ -514,7 +514,7 @@ test('handles combat interactions between Player and Cop in TrainyardScene', () 
 
     // Advance cop boxing ticks to tick 9 (impact window)
     for (let i = 0; i < 9; i++) {
-        scene.update(0, 84);
+        scene.update(0, 40);
     }
     // Player took 20 damage!
     assert.equal(scene.player.health, 80);
