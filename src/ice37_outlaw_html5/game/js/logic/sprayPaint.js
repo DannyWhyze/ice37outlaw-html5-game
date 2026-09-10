@@ -24,14 +24,19 @@
         });
     }
 
-    function extractPointerPoints(pointer, worldX = 0, canvas = null) {
+    function extractPointerPoints(pointer, worldX = 0, canvas = null, scaleManager = null, offsetY = 0) {
         const fallbackX = ((pointer && typeof pointer.x === 'number') ? pointer.x : 0) - worldX;
-        const fallbackY = (pointer && typeof pointer.y === 'number') ? pointer.y : 0;
+        const fallbackY = ((pointer && typeof pointer.y === 'number') ? pointer.y : 0) + offsetY;
         const fallbackPoint = { x: fallbackX, y: fallbackY };
 
         if (!pointer || !pointer.event || typeof pointer.event.getCoalescedEvents !== 'function') {
             return [fallbackPoint];
         }
+
+        const targetScale = scaleManager
+            || (pointer && pointer.manager && pointer.manager.scale)
+            || (canvas && canvas.scene && canvas.scene.scale)
+            || null;
 
         try {
             const coalesced = pointer.event.getCoalescedEvents();
@@ -50,15 +55,29 @@
             const points = [];
             for (let i = 0; i < coalesced.length; i++) {
                 const eventItem = coalesced[i];
-                const clientX = (eventItem && typeof eventItem.clientX === 'number')
-                    ? eventItem.clientX
-                    : ((eventItem && typeof eventItem.x === 'number') ? eventItem.x : 0);
-                const clientY = (eventItem && typeof eventItem.clientY === 'number')
-                    ? eventItem.clientY
-                    : ((eventItem && typeof eventItem.y === 'number') ? eventItem.y : 0);
+                let pointX;
+                let pointY;
 
-                const pointX = ((clientX - left) * scaleX) - worldX;
-                const pointY = (clientY - top) * scaleY;
+                if (targetScale && typeof targetScale.transformX === 'function' && typeof targetScale.transformY === 'function') {
+                    const pageX = (typeof eventItem.pageX === 'number')
+                        ? eventItem.pageX
+                        : ((typeof eventItem.clientX === 'number') ? eventItem.clientX : 0);
+                    const pageY = (typeof eventItem.pageY === 'number')
+                        ? eventItem.pageY
+                        : ((typeof eventItem.clientY === 'number') ? eventItem.clientY : 0);
+                    pointX = targetScale.transformX(pageX) - worldX;
+                    pointY = targetScale.transformY(pageY) + offsetY;
+                } else {
+                    const clientX = (eventItem && typeof eventItem.clientX === 'number')
+                        ? eventItem.clientX
+                        : ((eventItem && typeof eventItem.x === 'number') ? eventItem.x : 0);
+                    const clientY = (eventItem && typeof eventItem.clientY === 'number')
+                        ? eventItem.clientY
+                        : ((eventItem && typeof eventItem.y === 'number') ? eventItem.y : 0);
+
+                    pointX = ((clientX - left) * scaleX) - worldX;
+                    pointY = ((clientY - top) * scaleY) + offsetY;
+                }
 
                 if (points.length > 0) {
                     const last = points[points.length - 1];

@@ -133,4 +133,10 @@ test('GalleryStorageService delegates to adapter and enforces input security val
         },
         /Invalid PNG signature/i
     );
+
+    // Test clearAll
+    const cleared = await service.clearAll();
+    assert.equal(cleared, true);
+    const emptyList = await service.listPhotos();
+    assert.equal(emptyList.length, 0);
 });

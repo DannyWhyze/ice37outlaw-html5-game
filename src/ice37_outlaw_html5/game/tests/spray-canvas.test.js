@@ -149,8 +149,8 @@ test('clamps texture size to hardware MAX_TEXTURE_SIZE on restricted GPUs', () =
     assert.equal(mockRenderTexture.height, 1080);
 });
 
-test('calculates correct originX based on worldOffsetX and worldWidth', () => {
-    const { scene, mockRenderTexture } = createMockScene();
+test('calculates correct originX based on worldOffsetX and textureWidth', () => {
+    const { scene, mockRenderTexture } = createMockScene(16384);
     const canvas = new SprayCanvas(scene, {
         worldWidth: 8000,
         worldHeight: 1080,
@@ -161,6 +161,20 @@ test('calculates correct originX based on worldOffsetX and worldWidth', () => {
     assert.equal(canvas.worldOffsetX, 2000);
     assert.equal(mockRenderTexture.originX, 0.25);
     assert.equal(mockRenderTexture.depth, 33);
+});
+
+test('calculates correct originX when texture size is clamped on mobile GPUs', () => {
+    const { scene, mockRenderTexture } = createMockScene(4096);
+    const canvas = new SprayCanvas(scene, {
+        worldWidth: 8000,
+        worldHeight: 1080,
+        worldOffsetX: 2000,
+    });
+
+    // originX = 2000 / 4096 = 0.48828125
+    assert.equal(mockRenderTexture.originX, 2000 / 4096);
+    // Invariant: originX * textureWidth === worldOffsetX
+    assert.equal(mockRenderTexture.originX * mockRenderTexture.width, 2000);
 });
 
 test('applies bitmap mask to renderTexture when maskImage is provided', () => {

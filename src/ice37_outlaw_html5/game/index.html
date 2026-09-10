@@ -67,6 +67,9 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            touch-action: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
         #game-container canvas {
             margin: 0 !important;
@@ -74,6 +77,30 @@
             max-height: 100%;
             object-fit: contain;
             image-rendering: auto;
+            touch-action: none;
+        }
+        #orientation-prompt {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background-color: rgba(17, 17, 17, 0.95);
+            color: #99CC00;
+            z-index: 9999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            font-size: 1.2rem;
+            font-weight: bold;
+            padding: 20px;
+        }
+        @media screen and (orientation: portrait) and (max-width: 900px) {
+            #orientation-prompt {
+                display: flex;
+            }
         }
         .controls-bar {
             display: flex;
@@ -126,56 +153,65 @@
     <script src="https://cdn.jsdelivr.net/npm/phaser@3.80.1/dist/phaser.min.js"></script>
 
     <!-- Global Logic Modules -->
-    <script src="js/logic/canInventory.js?v=1080p"></script>
-    <script src="js/logic/sprayPaint.js?v=1080p"></script>
-    <script src="js/logic/toolCursor.js?v=1080p"></script>
-    <script src="js/logic/backpackPalette.js?v=1080p"></script>
-    <script src="js/logic/playerCombat.js?v=1080p"></script>
-    <script src="js/logic/playerDeath.js?v=1080p"></script>
-    <script src="js/logic/playerHurt.js?v=1080p"></script>
-    <script src="js/logic/copLogic.js?v=1080p"></script>
-    <script src="js/logic/copCombat.js?v=1080p"></script>
-    <script src="js/logic/copHurt.js?v=1080p"></script>
-    <script src="js/logic/copDeath.js?v=1080p"></script>
-    <script src="js/logic/combatCollision.js?v=1080p"></script>
-    <script src="js/logic/copSpawner.js?v=1080p"></script>
+    <script src="js/logic/canInventory.js?v=1080p_v4"></script>
+    <script src="js/logic/sprayPaint.js?v=1080p_v4"></script>
+    <script src="js/logic/toolCursor.js?v=1080p_v4"></script>
+    <script src="js/logic/touchPointerMode.js?v=1080p_v4"></script>
+    <script src="js/logic/backpackPalette.js?v=1080p_v4"></script>
+    <script src="js/logic/playerCombat.js?v=1080p_v4"></script>
+    <script src="js/logic/playerDeath.js?v=1080p_v4"></script>
+    <script src="js/logic/playerHurt.js?v=1080p_v4"></script>
+    <script src="js/logic/copLogic.js?v=1080p_v4"></script>
+    <script src="js/logic/copCombat.js?v=1080p_v4"></script>
+    <script src="js/logic/copHurt.js?v=1080p_v4"></script>
+    <script src="js/logic/copDeath.js?v=1080p_v4"></script>
+    <script src="js/logic/combatCollision.js?v=1080p_v4"></script>
+    <script src="js/logic/copSpawner.js?v=1080p_v4"></script>
     <script src="js/logic/playerControls.js?v=1080p"></script>
-    <script src="js/logic/soundFx.js?v=1080p"></script>
-    <script src="js/logic/galleryStorage.js?v=1080p_hd"></script>
+    <script src="js/logic/touchControlsLogic.js?v=1080p_v4"></script>
+    <script src="js/logic/soundFx.js?v=1080p_v4"></script>
+    <script src="js/logic/galleryStorage.js?v=1080p_v4"></script>
 
     <!-- Game Scenes -->
-    <script src="js/BootScene.js?v=1080p_hd"></script>
-    <script src="js/startNativeLayout.js?v=1080p"></script>
-    <script src="js/StartScene.js?v=1080p"></script>
-    <script src="js/menuNavigation.js?v=1080p"></script>
-    <script src="js/MenuScene.js?v=1080p_hd"></script>
-    <script src="js/HomeScene.js?v=1080p_hd"></script>
+    <script src="js/BootScene.js?v=1080p_v4"></script>
+    <script src="js/startNativeLayout.js?v=1080p_v4"></script>
+    <script src="js/StartScene.js?v=1080p_v4"></script>
+    <script src="js/menuNavigation.js?v=1080p_v4"></script>
+    <script src="js/MenuScene.js?v=1080p_v4"></script>
+    <script src="js/HomeScene.js?v=1080p_v4"></script>
 
     <!-- Global Prefabs -->
-    <script src="js/prefabs/Player.js"></script>
-    <script src="js/prefabs/Backpack.js"></script>
-    <script src="js/prefabs/Cop.js"></script>
-    <script src="js/prefabs/DevControls.js"></script>
-    <script src="js/prefabs/Hud.js?v=1080p_score"></script>
+    <script src="js/prefabs/Player.js?v=1080p_v4"></script>
+    <script src="js/prefabs/Backpack.js?v=1080p_v4"></script>
+    <script src="js/prefabs/Cop.js?v=1080p_v4"></script>
+    <script src="js/prefabs/TouchControls.js?v=1080p_v4"></script>
+    <script src="js/prefabs/TouchBrushReticle.js?v=1080p_v4"></script>
+    <script src="js/prefabs/DevControls.js?v=1080p_v4"></script>
+    <script src="js/prefabs/Hud.js?v=1080p_v4"></script>
     <script src="js/prefabs/Blende.js?v=1080p_hd"></script>
-    <script src="js/prefabs/CameraHud.js?v=1080p_hd"></script>
-    <script src="js/prefabs/GalleryOverlay.js?v=1080p_hd"></script>
-    <script src="js/prefabs/SprayCanvas.js"></script>
+    <script src="js/prefabs/CameraHud.js?v=1080p_v4"></script>
+    <script src="js/prefabs/GalleryOverlay.js?v=1080p_v4"></script>
+    <script src="js/prefabs/SprayCanvas.js?v=1080p_v4"></script>
 
     <!-- Hall of Fame Scene & Modules -->
-    <script src="js/halloffame/halloffameNativeLayout.js?v=1080p"></script>
-    <script src="js/halloffame/HallOfFameScene.js?v=1080p"></script>
+    <script src="js/halloffame/halloffameNativeLayout.js?v=1080p_v4"></script>
+    <script src="js/halloffame/HallOfFameScene.js?v=1080p_v4"></script>
 
     <!-- Street Scene & Modules -->
-    <script src="js/street/streetNativeLayout.js"></script>
-    <script src="js/street/StreetScene.js"></script>
+    <script src="js/street/streetNativeLayout.js?v=1080p_v4"></script>
+    <script src="js/street/StreetScene.js?v=1080p_v4"></script>
 
     <!-- Trainyard Scene & Modules -->
-    <script src="js/trainyard/trainyardNativeLayout.js"></script>
-    <script src="js/trainyard/TrainyardScene.js"></script>
-    <script src="js/main.js"></script>
+    <script src="js/trainyard/trainyardNativeLayout.js?v=1080p_v4"></script>
+    <script src="js/trainyard/TrainyardScene.js?v=1080p_v4"></script>
+    <script src="js/main.js?v=1080p_v4"></script>
 </head>
 <body>
+    <div id="orientation-prompt" aria-hidden="true">
+        <div>[ BITTE GERÄT DREHEN ]</div>
+        <div style="font-size: 0.9rem; margin-top: 10px; color: #ffffff;">Für das beste Spielerlebnis bitte ins Querformat (Landscape) wechseln.</div>
+    </div>
+
     <div class="font-preload font-preload-typist" aria-hidden="true">0123456789</div>
     <div class="font-preload font-preload-stencil" aria-hidden="true">GALLERY</div>
 

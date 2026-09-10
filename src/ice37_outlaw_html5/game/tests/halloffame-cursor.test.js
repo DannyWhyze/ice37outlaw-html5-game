@@ -1,6 +1,15 @@
 const assert = require('node:assert/strict');
 const test = require('node:test');
 
+if (!global.Phaser) {
+    global.Phaser = {
+        Scene: class {},
+        Scenes: {
+            Events: { SHUTDOWN: 'shutdown' },
+        },
+    };
+}
+
 const { getCursorPresentation } = require('../js/logic/toolCursor.js');
 
 test('uses the hand cursor while hovering over the backpack', () => {
@@ -54,3 +63,49 @@ test('verifies exact dimensions of native cursor PNG files', () => {
     assert.deepEqual(getPngDimensions(path.join(dir, 'cursor_paintroller.png')), { width: 158, height: 178 });
     assert.deepEqual(getPngDimensions(path.join(dir, 'cursor_hand.png')), { width: 88, height: 98 });
 });
+
+test('updateToolCursor suppresses toolCursor and hand cursor on mobile/touch devices across backpack, camera, and gallery', () => {
+    const { HallOfFameScene } = require('../js/halloffame/HallOfFameScene.js');
+    const dummyCursor = {
+        visible: true,
+        texture: '',
+        originX: 0,
+        originY: 0,
+        setVisible(v) { this.visible = v; return this; },
+        setTexture(k) { this.texture = k; return this; },
+        setOrigin(ox, oy) { this.originX = ox; this.originY = oy; return this; },
+        setPosition() { return this; },
+        setScale() { return this; },
+    };
+
+    const mockScene = Object.create(HallOfFameScene.prototype);
+    mockScene.toolCursor = dummyCursor;
+    mockScene.touchControls = { isEnabled: true };
+    mockScene.cameraHud = { isOpen: true };
+    mockScene.galleryOverlay = { isOpen: false };
+    mockScene.backpack = { containsPoint: () => true };
+    mockScene.isBackpackCursor = true;
+
+    // 1. When touchControls are enabled, cursor is unconditionally hidden even when camera and backpack are active
+    mockScene.updateToolCursor({ x: 960, y: 540, wasTouch: true, pointerType: 'touch' });
+    assert.equal(dummyCursor.visible, false, 'toolCursor must be hidden on touch devices when camera is active');
+
+    // 2. When gallery is open on touch device
+    mockScene.cameraHud.isOpen = false;
+    mockScene.galleryOverlay.isOpen = true;
+    mockScene.updateToolCursor({ x: 960, y: 540, wasTouch: true, pointerType: 'touch' });
+    assert.equal(dummyCursor.visible, false, 'toolCursor must be hidden on touch devices when gallery is active');
+
+    // 3. When backpack is hovered on touch device
+    mockScene.galleryOverlay.isOpen = false;
+    mockScene.updateToolCursor({ x: 960, y: 540, wasTouch: true, pointerType: 'touch' });
+    assert.equal(dummyCursor.visible, false, 'toolCursor must be hidden on touch devices when backpack is hovered');
+
+    // 4. On desktop (touchControls disabled, mouse pointer), hand cursor is shown when camera/gallery/backpack is active
+    mockScene.touchControls.isEnabled = false;
+    mockScene.cameraHud.isOpen = true;
+    mockScene.updateToolCursor({ x: 960, y: 540, wasTouch: false, pointerType: 'mouse' });
+    assert.equal(dummyCursor.visible, true, 'toolCursor must be visible on desktop mouse');
+    assert.equal(dummyCursor.texture, 'halloffame_cursor_hand', 'toolCursor must show hand on desktop mouse when camera is open');
+});
+

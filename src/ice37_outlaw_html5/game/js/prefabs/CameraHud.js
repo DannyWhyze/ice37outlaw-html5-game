@@ -409,6 +409,11 @@
             this.container.setVisible(true);
             this.focusImage.setPosition(960, 536);
 
+            // Hide/pause touch controls while camera HUD is active
+            if (this.scene && this.scene.touchControls && typeof this.scene.touchControls.setBackpackOpen === 'function') {
+                this.scene.touchControls.setBackpackOpen(true);
+            }
+
             // Default to Piece Only on camera open
             this.isPlayerVisibleState = false;
             this.applyPlayerVisibility();
@@ -440,6 +445,11 @@
         close() {
             this.isOpenState = false;
             this.container.setVisible(false);
+
+            // Restore touch controls for regular gameplay
+            if (this.scene && this.scene.touchControls && typeof this.scene.touchControls.setBackpackOpen === 'function') {
+                this.scene.touchControls.setBackpackOpen(false);
+            }
 
             // Defensively restore player visibility for regular gameplay
             if (this.scene && this.scene.player && this.scene.player.container && typeof this.scene.player.container.setVisible === 'function') {
@@ -483,7 +493,7 @@
             return this.open();
         }
 
-        takePhoto() {
+        takePhoto(callback) {
             if (!this.isOpen) {
                 return null;
             }
@@ -556,6 +566,8 @@
                 if (this.scene && this.scene.game && this.scene.game.renderer && typeof this.scene.game.renderer.snapshot === 'function') {
                     const containerWasVisible = this.container ? this.container.visible : false;
                     const cursorWasVisible = (this.scene.toolCursor && this.scene.toolCursor.visible);
+                    const touchControlsWereVisible = (this.scene.touchControls && this.scene.touchControls.isVisible);
+                    const reticleWasVisible = (this.scene.brushReticle && this.scene.brushReticle.container && this.scene.brushReticle.container.visible);
 
                     if (this.container) {
                         this.container.setVisible(false);
@@ -563,13 +575,26 @@
                     if (this.scene.toolCursor) {
                         this.scene.toolCursor.setVisible(false);
                     }
+                    if (reticleWasVisible && this.scene.brushReticle && this.scene.brushReticle.container) {
+                        this.scene.brushReticle.container.setVisible(false);
+                    }
+                    if (touchControlsWereVisible && this.scene.touchControls) {
+                        this.scene.touchControls.setVisible(false);
+                    }
 
                     this.scene.game.renderer.snapshot((image) => {
                         if (containerWasVisible && this.container) {
                             this.container.setVisible(true);
                         }
-                        if (cursorWasVisible && this.scene.toolCursor) {
+                        const isTouch = Boolean(this.scene && this.scene.touchControls && this.scene.touchControls.isEnabled);
+                        if (cursorWasVisible && this.scene.toolCursor && !isTouch) {
                             this.scene.toolCursor.setVisible(true);
+                        }
+                        if (reticleWasVisible && this.scene.brushReticle && this.scene.brushReticle.container) {
+                            this.scene.brushReticle.container.setVisible(true);
+                        }
+                        if (touchControlsWereVisible && this.scene.touchControls) {
+                            this.scene.touchControls.setVisible(true);
                         }
 
                         const dataUrl = (image && image.src)
@@ -579,7 +604,8 @@
                         if (dataUrl) {
                             onCaptured(dataUrl);
                         } else if (this.scene.game.canvas) {
-                            onCaptured(this.scene.game.canvas.toDataURL('image/png'));
+                            const rawUrl = this.scene.game.canvas.toDataURL('image/png');
+                            onCaptured(rawUrl);
                         }
                     });
                     return null;

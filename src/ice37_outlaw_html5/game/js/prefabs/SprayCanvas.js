@@ -41,7 +41,7 @@
             const textureHeight = Math.min(this.worldHeight, this.maxTextureSize);
 
             // Origin calculation so world coordinate (0, 0) aligns with worldOffsetX
-            const originX = this.worldWidth > 0 ? (this.worldOffsetX / this.worldWidth) : 0;
+            const originX = textureWidth > 0 ? (this.worldOffsetX / textureWidth) : 0;
 
             if (this.scene && this.scene.add && typeof this.scene.add.renderTexture === 'function') {
                 this.renderTexture = this.scene.add.renderTexture(0, 0, textureWidth, textureHeight);

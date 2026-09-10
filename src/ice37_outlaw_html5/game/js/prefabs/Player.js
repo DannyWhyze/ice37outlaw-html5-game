@@ -221,15 +221,28 @@
         get y() { return this.container.y; }
         set y(val) { this.container.y = val; }
         getInputState(isBlocked = false) {
-            if (this.controls && typeof this.controls.getInputState === 'function') {
-                return this.controls.getInputState(isBlocked);
-            }
-            return {
+            let keyState = {
                 isMovingLeft: false,
                 isMovingRight: false,
                 isBoxingDown: false,
                 isKickDown: false,
             };
+            if (this.controls && typeof this.controls.getInputState === 'function') {
+                keyState = this.controls.getInputState(isBlocked);
+            }
+            if (isBlocked) {
+                return keyState;
+            }
+            const touchControls = (this.scene && this.scene.touchControls && typeof this.scene.touchControls.getState === 'function')
+                ? this.scene.touchControls.getState()
+                : null;
+            if (touchControls) {
+                const TouchLogic = (typeof TouchControlsLogic !== 'undefined')
+                    ? TouchControlsLogic
+                    : (typeof require !== 'undefined' ? require('../logic/touchControlsLogic.js') : null);
+                return TouchLogic ? TouchLogic.blendInput(touchControls, keyState) : Object.assign({}, keyState, touchControls);
+            }
+            return keyState;
         }
 
         update(delta, input = null) {

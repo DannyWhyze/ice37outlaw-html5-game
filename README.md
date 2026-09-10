@@ -42,14 +42,21 @@ Browser Access: **`http://127.0.0.1:8000`**
 
 ## Game Controls
 
+### Desktop (Keyboard & Mouse)
 - **Move Left / Right:** `A` / `D` or `Left Arrow` / `Right Arrow`
 - **Box / Punch:** `W` or `Up Arrow`
 - **Kick:** `S` or `Down Arrow`
 - **Spray / Paint:** `Left Mouse Click & Drag`
 - **Backpack / Tools:** Click the backpack icon or press `E` to toggle tool palette
+- **Camera Snapshot:** Click the smartphone icon in the backpack to open camera HUD (`P` toggles player visibility)
+- **Dev Touch Overlay Toggle:** Press `V` to toggle mobile touch controls on desktop
 
-> [!NOTE]
-> **Mobile Browser Notice:** The current build is optimized for desktop browsers with physical keyboard and mouse controls. Touch controls for mobile browsers (virtual D-pad and on-screen touch buttons) are currently not optimized, but are planned for an upcoming release.
+### Mobile & Touch Devices
+- **Move Left / Right:** Tap or slide/swipe thumb continuously across `[ ◀ ] [ ▶ ]` on the bottom-left D-Pad.
+- **Combat:** Tap `[ BOX ]` or `[ KICK ]` buttons on the bottom-right.
+- **Spray / Paint:** Direct finger touch & drag on the wall / train canvas with dynamic brush reticle under fingertip.
+- **Backpack Auto-Pause:** Opening the backpack temporarily hides touch buttons for unhindered palette selection.
+- **Multi-Touch:** Full multi-touch support for simultaneous walking, combat, and spraying. Control buttons automatically block accidental paint streaks underneath.
 
 ---
 

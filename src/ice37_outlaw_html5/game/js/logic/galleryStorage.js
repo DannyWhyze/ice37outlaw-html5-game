@@ -177,6 +177,11 @@
             const safeId = sanitizePhotoId(id);
             return this.photos.get(safeId) || null;
         }
+
+        async clearAll() {
+            this.photos.clear();
+            return true;
+        }
     }
 
     /**
@@ -271,6 +276,17 @@
                 req.onerror = () => reject(req.error);
             });
         }
+
+        async clearAll() {
+            const db = await this._getDB();
+            return new Promise((resolve, reject) => {
+                const tx = db.transaction(this.storeName, 'readwrite');
+                const store = tx.objectStore(this.storeName);
+                store.clear();
+                tx.oncomplete = () => resolve(true);
+                tx.onerror = () => reject(tx.error);
+            });
+        }
     }
 
     /**
@@ -322,6 +338,16 @@
             const res = await fetch(`${this.endpoint}/${safeId}`, { method: 'GET' });
             if (!res.ok) return null;
             return res.json();
+        }
+
+        async clearAll() {
+            if (typeof fetch === 'undefined') return false;
+            try {
+                const res = await fetch(this.endpoint, { method: 'DELETE' });
+                return res.ok;
+            } catch {
+                return false;
+            }
         }
     }
 
@@ -381,19 +407,29 @@
             return this.adapter.getPhoto(id);
         }
 
+        async clearAll() {
+            await this.init();
+            if (this.adapter && typeof this.adapter.clearAll === 'function') {
+                return this.adapter.clearAll();
+            }
+            return false;
+        }
+
         /**
          * Utility to trigger a secure browser file download of a PNG dataUrl.
          */
-        downloadPhoto(dataUrl, filename = 'lords_of_brooklyn_photo.png') {
-            const validation = validatePngDataUrl(dataUrl);
-            if (!validation.valid) {
-                throw new Error(`Cannot download invalid PNG: ${validation.error}`);
+        downloadPhoto(dataUrlOrUrl, filename = 'lords_of_brooklyn_photo.png') {
+            if (typeof dataUrlOrUrl === 'string' && dataUrlOrUrl.startsWith('data:')) {
+                const validation = validatePngDataUrl(dataUrlOrUrl);
+                if (!validation.valid) {
+                    throw new Error(`Cannot download invalid PNG: ${validation.error}`);
+                }
             }
 
             const safeFilename = filename.replace(/[^a-zA-Z0-9._-]/g, '_');
             if (typeof document !== 'undefined') {
                 const link = document.createElement('a');
-                link.href = dataUrl;
+                link.href = dataUrlOrUrl;
                 link.download = safeFilename.endsWith('.png') ? safeFilename : `${safeFilename}.png`;
                 document.body.appendChild(link);
                 link.click();

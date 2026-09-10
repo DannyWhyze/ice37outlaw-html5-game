@@ -138,11 +138,12 @@ class HallOfFameScene extends Phaser.Scene {
             .setDepth(1)
             .setInteractive();
         this.isSpraying = false;
+        this.activeSprayPointerId = null;
         this.lastSprayPoint = null;
         this.paintInput.on('pointerdown', (pointer) => this.beginSpray(pointer));
         this.paintInput.on('pointermove', (pointer) => this.continueSpray(pointer));
-        this.paintInput.on('pointerout', () => this.endSpray());
-        this.input.on('pointerup', () => this.endSpray());
+        this.paintInput.on('pointerout', (pointer) => this.endSpray(pointer));
+        this.input.on('pointerup', (pointer) => this.endSpray(pointer));
 
         // Prefab 1: Player (Layer 1: CharID 113 at depth 37)
         const PlayerPrefab = (typeof Player !== 'undefined')
@@ -155,6 +156,27 @@ class HallOfFameScene extends Phaser.Scene {
         this.walkingSprayer = this.player.walkingSprayer;
         this.boxingSprayer = this.player.boxingSprayer;
         this.kickSprayer = this.player.kickSprayer;
+
+        // Multi-touch registration for simultaneous thumb movement & actions
+        if (this.input && typeof this.input.addPointer === 'function') {
+            this.input.addPointer(2);
+        }
+
+        // Prefab: Touch Controls Overlay (Layer 3: depth 250)
+        const TouchControlsPrefab = (typeof TouchControls !== 'undefined')
+            ? TouchControls
+            : (typeof require !== 'undefined' ? require('../prefabs/TouchControls.js').TouchControls : null);
+        if (TouchControlsPrefab) {
+            this.touchControls = new TouchControlsPrefab(this);
+        }
+
+        // Prefab: Touch Brush Reticle (Layer 3: depth 201)
+        const TouchBrushReticlePrefab = (typeof TouchBrushReticle !== 'undefined')
+            ? TouchBrushReticle
+            : (typeof require !== 'undefined' ? (function() { try { return require('../prefabs/TouchBrushReticle.js').TouchBrushReticle; } catch (_) { return null; } })() : null);
+        if (TouchBrushReticlePrefab) {
+            this.brushReticle = new TouchBrushReticlePrefab(this);
+        }
 
         // Prefab 2: Backpack (Layer 3: CharID 74 at depth 100)
         const BackpackPrefab = (typeof Backpack !== 'undefined')
@@ -189,6 +211,9 @@ class HallOfFameScene extends Phaser.Scene {
             },
             onStateChange: (paletteState) => {
                 this.paletteState = paletteState;
+                if (this.touchControls && typeof this.touchControls.setBackpackOpen === 'function') {
+                    this.touchControls.setBackpackOpen(paletteState === 'open');
+                }
             },
         });
         this.paletteState = this.backpack.paletteState;
@@ -379,14 +404,31 @@ class HallOfFameScene extends Phaser.Scene {
             this.backpack.close();
             return;
         }
+        const TouchLogic = (typeof TouchControlsLogic !== 'undefined')
+            ? TouchControlsLogic
+            : (typeof require !== 'undefined' ? require('../logic/touchControlsLogic.js') : null);
+        if (this.touchControls && this.touchControls.isVisible) {
+            const TouchLogic = (typeof TouchControlsLogic !== 'undefined') ? TouchControlsLogic : require('../logic/touchControlsLogic.js');
+            if (TouchLogic && TouchLogic.isPointInControlZone(pointer.x, pointer.y)) {
+                return;
+            }
+        }
+        const TouchPointerModeModule = (typeof TouchPointerMode !== 'undefined')
+            ? TouchPointerMode
+            : (typeof require !== 'undefined' ? (function() { try { return require('../logic/touchPointerMode.js'); } catch (_) { return null; } })() : null);
+        const isTouch = Boolean(this.touchControls && this.touchControls.isEnabled)
+            || (TouchPointerModeModule ? TouchPointerModeModule.isTouchPointerEvent(pointer) : Boolean(pointer && (pointer.wasTouch || pointer.pointerType === 'touch')));
+        const drawOffsetY = isTouch ? ((TouchPointerModeModule && typeof TouchPointerModeModule.TOUCH_DRAW_OFFSET_Y === 'number') ? TouchPointerModeModule.TOUCH_DRAW_OFFSET_Y : -65) : 0;
+
         const Spray = (typeof SprayPaint !== 'undefined') ? SprayPaint : require('../logic/sprayPaint.js');
         if (!Spray.canSpray(this.isLeavingHallOfFame) || (this.player && this.player.isDead)) {
             return;
         }
+        this.activeSprayPointerId = pointer && pointer.id !== undefined ? pointer.id : 1;
         const nativeCap = Spray.getNativeCapSize(this.sprayState.cap);
         const canvas = (this.game && this.game.canvas) ? this.game.canvas : null;
         const worldX = (this.worldLayer && this.worldLayer.x) || 0;
-        const startPoint = { x: pointer.x - worldX, y: pointer.y };
+        const startPoint = { x: pointer.x - worldX, y: pointer.y + drawOffsetY };
         this.isSpraying = true;
         this.sprayStroke = new Spray.SprayStroke(startPoint, nativeCap);
         this.lastSprayPoint = startPoint;
@@ -394,6 +436,7 @@ class HallOfFameScene extends Phaser.Scene {
             this.sprayCanvas.updateBrush(this.sprayState.color, this.sprayState.opacity / 100, nativeCap / 2);
         }
         this.stampSpray(startPoint.x, startPoint.y, nativeCap);
+        this.updateToolCursor(pointer);
     }
 
     continueSpray(pointer) {
@@ -401,10 +444,21 @@ class HallOfFameScene extends Phaser.Scene {
         if (!Spray.canSpray(this.isLeavingHallOfFame) || !this.isSpraying || !pointer.isDown || (this.player && this.player.isDead)) {
             return;
         }
+        const pointerId = pointer && pointer.id !== undefined ? pointer.id : 1;
+        if (this.activeSprayPointerId !== null && pointerId !== this.activeSprayPointerId) {
+            return;
+        }
+        const TouchPointerModeModule = (typeof TouchPointerMode !== 'undefined')
+            ? TouchPointerMode
+            : (typeof require !== 'undefined' ? (function() { try { return require('../logic/touchPointerMode.js'); } catch (_) { return null; } })() : null);
+        const isTouch = Boolean(this.touchControls && this.touchControls.isEnabled)
+            || (TouchPointerModeModule ? TouchPointerModeModule.isTouchPointerEvent(pointer) : Boolean(pointer && (pointer.wasTouch || pointer.pointerType === 'touch')));
+        const drawOffsetY = isTouch ? ((TouchPointerModeModule && typeof TouchPointerModeModule.TOUCH_DRAW_OFFSET_Y === 'number') ? TouchPointerModeModule.TOUCH_DRAW_OFFSET_Y : -65) : 0;
+
         const nativeCap = Spray.getNativeCapSize(this.sprayState.cap);
         const canvas = (this.game && this.game.canvas) ? this.game.canvas : null;
         const worldX = (this.worldLayer && this.worldLayer.x) || 0;
-        const points = Spray.extractPointerPoints(pointer, worldX, canvas);
+        const points = Spray.extractPointerPoints(pointer, worldX, canvas, this.scale, drawOffsetY);
         if (this.sprayStroke) {
             const newStamps = this.sprayStroke.addPoints(points);
             if (this.sprayCanvas) {
@@ -418,11 +472,19 @@ class HallOfFameScene extends Phaser.Scene {
         if (points && points.length > 0) {
             this.lastSprayPoint = points[points.length - 1];
         }
+        this.updateToolCursor(pointer);
     }
 
-    endSpray() {
+    endSpray(pointer) {
+        if (pointer) {
+            const pointerId = pointer.id !== undefined ? pointer.id : 1;
+            if (this.activeSprayPointerId !== null && pointerId !== this.activeSprayPointerId) {
+                return;
+            }
+        }
+        this.activeSprayPointerId = null;
         const Spray = (typeof SprayPaint !== 'undefined') ? SprayPaint : require('../logic/sprayPaint.js');
-        const nativeCap = Spray.getNativeCapSize(this.sprayState.cap);
+        const nativeCap = (this.sprayState && this.sprayState.cap) ? Spray.getNativeCapSize(this.sprayState.cap) : 5;
         if (this.sprayStroke) {
             const finalStamps = this.sprayStroke.finish();
             if (this.sprayCanvas) {
@@ -436,6 +498,9 @@ class HallOfFameScene extends Phaser.Scene {
         this.isSpraying = false;
         this.sprayStroke = null;
         this.lastSprayPoint = null;
+        if (this.brushReticle) {
+            this.brushReticle.hide();
+        }
     }
 
     stampSpray(x, y, nativeCap) {
@@ -452,6 +517,42 @@ class HallOfFameScene extends Phaser.Scene {
 
     updateToolCursor(pointer) {
         if (!this.toolCursor) return;
+
+        // Check if active pointer interaction is touch or coarse mobile device
+        const TouchPointerModeModule = (typeof TouchPointerMode !== 'undefined')
+            ? TouchPointerMode
+            : (typeof require !== 'undefined' ? (function() { try { return require('../logic/touchPointerMode.js'); } catch (_) { return null; } })() : null);
+
+        const isCoarse = TouchPointerModeModule ? TouchPointerModeModule.isCoarsePointer() : false;
+        const isTouch = Boolean(this.touchControls && this.touchControls.isEnabled)
+            || isCoarse
+            || (TouchPointerModeModule ? TouchPointerModeModule.isTouchPointerEvent(pointer) : Boolean(pointer && (pointer.wasTouch || pointer.pointerType === 'touch')));
+
+        if (isTouch) {
+            // Touchscreen / Mobile mode: virtual mouse cursor (tool/hand) is NEVER shown!
+            this.toolCursor.setVisible(false);
+            if (this.isSpraying && this.brushReticle && pointer) {
+                const drawOffsetY = (TouchPointerModeModule && typeof TouchPointerModeModule.TOUCH_DRAW_OFFSET_Y === 'number') ? TouchPointerModeModule.TOUCH_DRAW_OFFSET_Y : -65;
+                const cam = (this.cameras && this.cameras.main) ? this.cameras.main : null;
+                const zoom = (cam && typeof cam.zoom === 'number') ? cam.zoom : 1.0;
+                const scrollX = (cam && typeof cam.scrollX === 'number') ? cam.scrollX : 0;
+                const scrollY = (cam && typeof cam.scrollY === 'number') ? cam.scrollY : 0;
+                const targetX = (pointer.x - 960) / zoom + 960 + scrollX;
+                const targetY = (pointer.y + drawOffsetY - 540) / zoom + 540 + scrollY;
+                const cap = (this.sprayState && this.sprayState.cap) ? this.sprayState.cap : 5;
+                const color = (this.sprayState && this.sprayState.color) ? this.sprayState.color : 0x000000;
+                this.brushReticle.show(targetX, targetY, cap, color, zoom);
+            } else if (this.brushReticle) {
+                this.brushReticle.hide();
+            }
+            return;
+        }
+
+        // Desktop Mouse Pointer: Classic Retro Tool Cursor
+        if (this.brushReticle) {
+            this.brushReticle.hide();
+        }
+
         const isCameraActive = Boolean(this.cameraHud && this.cameraHud.isOpen);
         const isGalleryActive = Boolean(this.galleryOverlay && this.galleryOverlay.isOpen);
         const isBackpackHovered = Boolean(
@@ -459,26 +560,31 @@ class HallOfFameScene extends Phaser.Scene {
             (this.backpack && this.backpack.containsPoint && pointer && this.backpack.containsPoint(pointer.x, pointer.y))
         );
         const showHandCursor = Boolean(isBackpackHovered || isCameraActive || isGalleryActive);
+
         const CursorHelper = (typeof ToolCursor !== 'undefined') ? ToolCursor : require('../logic/toolCursor.js');
         const cursor = CursorHelper.getCursorPresentation(showHandCursor, this.sprayState ? this.sprayState.cursorStyle : 'can');
         this.toolCursor.setTexture(cursor.key);
         this.toolCursor.setOrigin(cursor.origin.x, cursor.origin.y);
-        if (pointer) {
-            const cam = (this.cameras && this.cameras.main) ? this.cameras.main : null;
-            const zoom = (cam && typeof cam.zoom === 'number') ? cam.zoom : 1.0;
-            const scrollX = (cam && typeof cam.scrollX === 'number') ? cam.scrollX : 0;
-            const scrollY = (cam && typeof cam.scrollY === 'number') ? cam.scrollY : 0;
-            let targetX;
-            let targetY;
-            if (typeof pointer.x === 'number' && typeof pointer.y === 'number') {
-                targetX = (pointer.x - 960) / zoom + 960 + scrollX;
-                targetY = (pointer.y - 540) / zoom + 540 + scrollY;
-            } else {
-                targetX = (typeof pointer.worldX === 'number') ? pointer.worldX : (pointer.x || 960);
-                targetY = (typeof pointer.worldY === 'number') ? pointer.worldY : (pointer.y || 540);
-            }
-            this.toolCursor.setPosition(targetX, targetY).setScale(1 / zoom).setVisible(true);
+        this.positionToolCursor(pointer);
+        this.toolCursor.setVisible(true);
+    }
+
+    positionToolCursor(pointer) {
+        if (!pointer || !this.toolCursor) return;
+        const cam = (this.cameras && this.cameras.main) ? this.cameras.main : null;
+        const zoom = (cam && typeof cam.zoom === 'number') ? cam.zoom : 1.0;
+        const scrollX = (cam && typeof cam.scrollX === 'number') ? cam.scrollX : 0;
+        const scrollY = (cam && typeof cam.scrollY === 'number') ? cam.scrollY : 0;
+        let targetX;
+        let targetY;
+        if (typeof pointer.x === 'number' && typeof pointer.y === 'number') {
+            targetX = (pointer.x - 960) / zoom + 960 + scrollX;
+            targetY = (pointer.y - 540) / zoom + 540 + scrollY;
+        } else {
+            targetX = (typeof pointer.worldX === 'number') ? pointer.worldX : (pointer.x || 960);
+            targetY = (typeof pointer.worldY === 'number') ? pointer.worldY : (pointer.y || 540);
         }
+        this.toolCursor.setPosition(targetX, targetY).setScale(1 / zoom);
     }
 
     hasReachedExit() {

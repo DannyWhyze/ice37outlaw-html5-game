@@ -397,25 +397,38 @@
             const cardContainer = scene.add.container(x, y);
             cardContainer.setAngle(tilt);
 
-            // 1. Photo inside Aperture (Width ~0.755 of frame, Height ~0.662, Y shifted up)
+            // 0. Solid dark aperture backing (prevents empty/transparent bleeding)
             const photoW = width * 0.755;
             const photoH = height * 0.662;
             const photoY = -height * 0.08;
 
-            const photoImg = scene.add.image(0, photoY, 'gallery_polaroid_frame')
-                .setOrigin(0.5, 0.5)
-                .setDisplaySize(photoW, photoH);
-            cardContainer.add(photoImg);
+            if (scene.add && typeof scene.add.rectangle === 'function') {
+                const apertureBacking = scene.add.rectangle(0, photoY, photoW, photoH, 0x111111, 1.0)
+                    .setOrigin(0.5, 0.5);
+                cardContainer.add(apertureBacking);
+            }
+
+            // 1. Photo inside Aperture (Width ~0.755 of frame, Height ~0.662, Y shifted up)
+            let photoImg = null;
+            if (scene.add && typeof scene.add.image === 'function') {
+                photoImg = scene.add.image(0, photoY, 'gallery_backdrop_ice37')
+                    .setOrigin(0.5, 0.5)
+                    .setDisplaySize(photoW, photoH)
+                    .setVisible(false);
+                cardContainer.add(photoImg);
+            }
 
             const initialKey = this.getPhotoTextureKey(photo, (readyKey) => {
                 if (photoImg && photoImg.active !== false && typeof photoImg.setTexture === 'function') {
                     photoImg.setTexture(readyKey);
                     photoImg.setDisplaySize(photoW, photoH);
+                    photoImg.setVisible(true);
                 }
             });
-            if (initialKey && initialKey !== 'gallery_polaroid_frame') {
+            if (initialKey && photoImg) {
                 photoImg.setTexture(initialKey);
                 photoImg.setDisplaySize(photoW, photoH);
+                photoImg.setVisible(true);
             }
 
             // 2. Comic Polaroid Frame on top
@@ -487,7 +500,7 @@
         }
 
         getPhotoTextureKey(photo, onTextureReady) {
-            if (!photo) return 'gallery_polaroid_frame';
+            if (!photo) return null;
             const key = `gallery_tex_${photo.id}`;
             if (photo.textureKey && this.scene.textures && this.scene.textures.exists(photo.textureKey)) {
                 return photo.textureKey;
@@ -495,7 +508,8 @@
             if (photo.id && this.scene.textures && this.scene.textures.exists(key)) {
                 return key;
             }
-            if (photo.dataUrl && typeof Image !== 'undefined') {
+            const srcUrl = photo.dataUrl || photo.imageUrl;
+            if (srcUrl && typeof Image !== 'undefined') {
                 const img = new Image();
                 img.onload = () => {
                     if (this.scene && this.scene.textures) {
@@ -509,13 +523,13 @@
                         }
                     }
                 };
-                img.src = photo.dataUrl;
+                img.src = srcUrl;
             } else if (photo.dataUrl && this.scene.textures && typeof this.scene.textures.addBase64 === 'function') {
                 this.scene.textures.addBase64(key, photo.dataUrl);
                 photo.textureKey = key;
                 return key;
             }
-            return 'gallery_polaroid_frame';
+            return null;
         }
 
         formatDateCaption(metadata = {}) {
@@ -550,15 +564,20 @@
 
             const detailW = 1152;
             const detailH = 648;
+            if (this.detailPhotoImage && typeof this.detailPhotoImage.setVisible === 'function') {
+                this.detailPhotoImage.setVisible(false);
+            }
             const initialKey = this.getPhotoTextureKey(photo, (readyKey) => {
                 if (this.detailPhotoImage && this.detailPhotoImage.active !== false && typeof this.detailPhotoImage.setTexture === 'function') {
                     this.detailPhotoImage.setTexture(readyKey);
                     this.detailPhotoImage.setDisplaySize(detailW, detailH);
+                    this.detailPhotoImage.setVisible(true);
                 }
             });
-            if (this.detailPhotoImage && typeof this.detailPhotoImage.setTexture === 'function') {
+            if (initialKey && this.detailPhotoImage && typeof this.detailPhotoImage.setTexture === 'function') {
                 this.detailPhotoImage.setTexture(initialKey);
                 this.detailPhotoImage.setDisplaySize(detailW, detailH);
+                this.detailPhotoImage.setVisible(true);
             }
             if (this.detailCaptionText && typeof this.detailCaptionText.setText === 'function') {
                 this.detailCaptionText.setText(this.formatDateCaption(photo.metadata));
@@ -603,7 +622,7 @@
             const photo = this.currentDetailPhoto;
             const filename = `${photo.id || 'photo'}.png`;
             if (typeof this.storage.downloadPhoto === 'function') {
-                this.storage.downloadPhoto(photo.dataUrl, filename);
+                this.storage.downloadPhoto(photo.dataUrl || photo.imageUrl, filename);
             }
         }
 

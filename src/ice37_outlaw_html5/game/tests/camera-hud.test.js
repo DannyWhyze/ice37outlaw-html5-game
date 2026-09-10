@@ -546,6 +546,45 @@ test('CameraHud saves photo to GalleryStorageService on photo capture and galler
     assert.ok(savedPhoto.metadata.timestamp > 0);
 });
 
+test('CameraHud capturePhoto hides toolCursor and brushReticle during snapshot, and does not restore toolCursor on touch devices', () => {
+    const scene = createMockScene();
+    scene.toolCursor = { visible: true, setVisible(v) { this.visible = v; } };
+    scene.brushReticle = { container: { visible: true, setVisible(v) { this.visible = v; } } };
+    scene.touchControls = { isVisible: true, isEnabled: true, setVisible(v) { this.isVisible = v; } };
+
+    let capturedCursorVisible = null;
+    let capturedReticleVisible = null;
+    let capturedTouchControlsVisible = null;
+    let capturedHudContainerVisible = null;
+
+    let cameraHudInstance = null;
+    scene.game.renderer = {
+        snapshot: (cb) => {
+            capturedCursorVisible = scene.toolCursor.visible;
+            capturedReticleVisible = scene.brushReticle.container.visible;
+            capturedTouchControlsVisible = scene.touchControls.isVisible;
+            capturedHudContainerVisible = cameraHudInstance.container.visible;
+            cb({ src: 'data:image/png;base64,fake' });
+        },
+    };
+
+    cameraHudInstance = new CameraHud(scene);
+    cameraHudInstance.open();
+    cameraHudInstance.takePhoto();
+
+    // Inside snapshot callback (when taking photo), all HUD elements, cursor, reticle, and touch controls must be hidden
+    assert.equal(capturedHudContainerVisible, false, 'Camera HUD container must be hidden during snapshot');
+    assert.equal(capturedCursorVisible, false, 'toolCursor must be hidden during snapshot');
+    assert.equal(capturedReticleVisible, false, 'brushReticle must be hidden during snapshot');
+    assert.equal(capturedTouchControlsVisible, false, 'touchControls must be hidden during snapshot');
+
+    // After snapshot on touch device (touchControls.isEnabled: true), toolCursor must NOT be restored to visible
+    assert.equal(scene.toolCursor.visible, false, 'toolCursor must remain hidden on touch devices after snapshot');
+    assert.equal(scene.brushReticle.container.visible, true, 'brushReticle must be restored after snapshot');
+    assert.equal(scene.touchControls.isVisible, true, 'touchControls must be restored after snapshot');
+});
+
+
 
 
 
