@@ -82,6 +82,12 @@ test('isPointInControlZone identifies exclusion areas preventing unwanted spray 
     assert.equal(TouchControlsLogic.isPointInControlZone(960, 500), false);
     assert.equal(TouchControlsLogic.isPointInControlZone(100, 300), false);
     assert.equal(TouchControlsLogic.isPointInControlZone(1700, 400), false);
+
+    // When hasCombat is false (e.g. peaceful HallOfFameScene), right control cluster is allowed for painting
+    assert.equal(TouchControlsLogic.isPointInControlZone(1600, 940, false), false);
+    assert.equal(TouchControlsLogic.isPointInControlZone(1800, 800, false), false);
+    // Left movement cluster remains excluded regardless of combat
+    assert.equal(TouchControlsLogic.isPointInControlZone(290, 940, false), true);
 });
 
 test('resolveMovementState resolves discrete taps on movement buttons', () => {
@@ -339,5 +345,27 @@ test('handles backpack open/close pause lifecycle without revealing on desktop h
     assert.equal(mobileControls.isPaused, false);
     assert.equal(mobileControls.isVisible, true);
     assert.equal(mobileControls.container.visible, true);
+});
+
+test('TouchControls with hasCombat: false omits combat buttons and unblocks right screen spray area', () => {
+    const scene = createMockScene();
+    const touchControls = new TouchControls(scene, { visible: true, hasCombat: false });
+
+    assert.equal(touchControls.hasCombat, false);
+    assert.equal(touchControls.elements.btnBox, undefined);
+    assert.equal(touchControls.elements.btnKick, undefined);
+    assert.ok(touchControls.elements.btnLeft);
+    assert.ok(touchControls.elements.btnRight);
+
+    // Right screen area is paintable because hasCombat is false
+    assert.equal(touchControls.isPointInControlZone(1600, 940), false);
+    assert.equal(touchControls.isPointInControlZone(1800, 800), false);
+
+    // Left movement area remains excluded
+    assert.equal(touchControls.isPointInControlZone(290, 940), true);
+
+    const state = touchControls.getState();
+    assert.equal(state.isBoxingDown, false);
+    assert.equal(state.isKickDown, false);
 });
 

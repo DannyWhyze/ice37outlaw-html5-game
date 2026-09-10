@@ -92,12 +92,17 @@
      * Checks if a point (x, y) falls inside any UI control exclusion zone (where spraying is disallowed).
      * @param {number} x
      * @param {number} y
+     * @param {boolean} [hasCombat=true] Whether combat action buttons exist in current scene
      * @returns {boolean}
      */
-    function isPointInControlZone(x, y) {
-        for (let i = 0; i < LAYOUT.exclusionZones.length; i++) {
-            const zone = LAYOUT.exclusionZones[i];
-            if (x >= zone.minX && x <= zone.maxX && y >= zone.minY && y <= zone.maxY) {
+    function isPointInControlZone(x, y, hasCombat = true) {
+        const leftZone = LAYOUT.exclusionZones[0];
+        if (x >= leftZone.minX && x <= leftZone.maxX && y >= leftZone.minY && y <= leftZone.maxY) {
+            return true;
+        }
+        if (hasCombat) {
+            const rightZone = LAYOUT.exclusionZones[1];
+            if (rightZone && x >= rightZone.minX && x <= rightZone.maxX && y >= rightZone.minY && y <= rightZone.maxY) {
                 return true;
             }
         }

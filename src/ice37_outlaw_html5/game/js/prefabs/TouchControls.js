@@ -31,6 +31,7 @@
         constructor(scene, options = {}) {
             this.scene = scene;
             this.autoDetect = options.autoDetect !== undefined ? Boolean(options.autoDetect) : true;
+            this.hasCombat = options.hasCombat !== undefined ? Boolean(options.hasCombat) : true;
 
             const detectedTouch = TouchControlsLogic ? TouchControlsLogic.isTouchDevice() : false;
             this.isEnabled = (options.visible !== undefined)
@@ -73,7 +74,9 @@
             // Create buttons & visuals
             this.elements = {};
             this.createMovementControls(scene, layout);
-            this.createCombatControls(scene, layout);
+            if (this.hasCombat) {
+                this.createCombatControls(scene, layout);
+            }
 
             this.children = (this.container && this.container.children) ? this.container.children : [];
 
@@ -257,6 +260,7 @@
         }
 
         updateCombatVisuals() {
+            if (!this.hasCombat) return;
             if (this.elements.btnBox && this.elements.btnBox.bg) {
                 this.elements.btnBox.bg.setFillStyle(this.isBoxingDown ? 0x99CC00 : 0x111111, this.isBoxingDown ? 0.9 : 0.65);
                 this.elements.btnBox.text.setColor(this.isBoxingDown ? '#111111' : '#99CC00');
@@ -265,6 +269,20 @@
                 this.elements.btnKick.bg.setFillStyle(this.isKickDown ? 0x99CC00 : 0x111111, this.isKickDown ? 0.9 : 0.65);
                 this.elements.btnKick.text.setColor(this.isKickDown ? '#111111' : '#99CC00');
             }
+        }
+
+        /**
+         * Checks if a point falls within this control's active exclusion zones.
+         * @param {number} x
+         * @param {number} y
+         * @returns {boolean}
+         */
+        isPointInControlZone(x, y) {
+            if (!this.isVisible) return false;
+            if (TouchControlsLogic && typeof TouchControlsLogic.isPointInControlZone === 'function') {
+                return TouchControlsLogic.isPointInControlZone(x, y, this.hasCombat);
+            }
+            return false;
         }
 
         /**
@@ -282,8 +300,8 @@
             return {
                 isMovingLeft: this.isMovingLeft,
                 isMovingRight: this.isMovingRight,
-                isBoxingDown: this.isBoxingDown,
-                isKickDown: this.isKickDown,
+                isBoxingDown: this.hasCombat ? this.isBoxingDown : false,
+                isKickDown: this.hasCombat ? this.isKickDown : false,
             };
         }
 
