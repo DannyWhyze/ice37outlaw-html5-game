@@ -62,34 +62,20 @@ class HallOfFameScene extends Phaser.Scene {
         this.isLeavingHallOfFame = false;
 
         // Layer 1: thePad (Spray effects canvas via SprayCanvas prefab) and paintmask (Shape 114)
-        if (this.make && this.make.image) {
-            this.maskImage = this.make.image({
-                x: LAYOUT.paintmask.x,
-                y: LAYOUT.paintmask.y,
-                key: 'halloffame_paintmask',
-                add: false,
-            }).setOrigin(0, 0);
-        }
-
         const SprayCanvasClass = (typeof SprayCanvas !== 'undefined')
             ? SprayCanvas
             : ((typeof require !== 'undefined') ? require('../prefabs/SprayCanvas.js').SprayCanvas : null);
         if (SprayCanvasClass) {
             this.sprayCanvas = new SprayCanvasClass(this, {
-                worldWidth: 6000,
-                worldHeight: 1080,
-                worldOffsetX: 1000,
+                surfaceBounds: LAYOUT.paintmask,
+                chunkWidth: 4096,
+                maskKeys: ['halloffame_paintmask'],
                 depth: 33,
-                maskImage: this.maskImage,
             });
             this.sprayEffects = this.sprayCanvas.renderTexture;
         } else {
             this.sprayEffects = this.add.graphics();
             this.sprayEffects.setDepth(33);
-            if (this.maskImage && this.maskImage.createBitmapMask) {
-                const mask = this.maskImage.createBitmapMask();
-                this.sprayEffects.setMask(mask);
-            }
         }
 
         this.syncSprayMaskWorldPosition();
@@ -167,7 +153,7 @@ class HallOfFameScene extends Phaser.Scene {
             ? TouchControls
             : (typeof require !== 'undefined' ? require('../prefabs/TouchControls.js').TouchControls : null);
         if (TouchControlsPrefab) {
-            this.touchControls = new TouchControlsPrefab(this);
+            this.touchControls = new TouchControlsPrefab(this, { hasCombat: false });
         }
 
         // Prefab: Touch Brush Reticle (Layer 3: depth 201)
@@ -390,10 +376,6 @@ class HallOfFameScene extends Phaser.Scene {
         } else if (this.sprayEffects) {
             this.sprayEffects.setPosition(x, y);
         }
-        if (this.maskImage && this.layout && this.layout.paintmask) {
-            this.maskImage.x = this.layout.paintmask.x + x;
-            this.maskImage.y = this.layout.paintmask.y + y;
-        }
     }
 
     beginSpray(pointer) {
@@ -404,13 +386,16 @@ class HallOfFameScene extends Phaser.Scene {
             this.backpack.close();
             return;
         }
-        const TouchLogic = (typeof TouchControlsLogic !== 'undefined')
-            ? TouchControlsLogic
-            : (typeof require !== 'undefined' ? require('../logic/touchControlsLogic.js') : null);
         if (this.touchControls && this.touchControls.isVisible) {
-            const TouchLogic = (typeof TouchControlsLogic !== 'undefined') ? TouchControlsLogic : require('../logic/touchControlsLogic.js');
-            if (TouchLogic && TouchLogic.isPointInControlZone(pointer.x, pointer.y)) {
-                return;
+            if (typeof this.touchControls.isPointInControlZone === 'function') {
+                if (this.touchControls.isPointInControlZone(pointer.x, pointer.y)) {
+                    return;
+                }
+            } else {
+                const TouchLogic = (typeof TouchControlsLogic !== 'undefined') ? TouchControlsLogic : require('../logic/touchControlsLogic.js');
+                if (TouchLogic && TouchLogic.isPointInControlZone(pointer.x, pointer.y, false)) {
+                    return;
+                }
             }
         }
         const TouchPointerModeModule = (typeof TouchPointerMode !== 'undefined')

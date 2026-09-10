@@ -71,29 +71,31 @@
 
         this.worldLayer.add([this.exitShadowLeft, this.exitLeft, this.exitShadowRight, this.exitRight]);
 
-        // Layer 1: thePad (Spray effects canvas via SprayCanvas prefab) and paintmask (Shape 160)
-        if (this.make && this.make.image) {
-            this.maskImage = this.make.image({
-                x: LAYOUT.paintmask.x,
-                y: LAYOUT.paintmask.y,
-                key: 'street_paintmask',
-                add: false,
-            }).setOrigin(0, 0);
-        }
-
+        // Layer 1: thePad (Spray effects canvas via SprayCanvas prefab in mask-local surface chunks mode)
         const SprayCanvasClass = (typeof SprayCanvas !== 'undefined')
             ? SprayCanvas
             : ((typeof require !== 'undefined') ? require('../prefabs/SprayCanvas.js').SprayCanvas : null);
         if (SprayCanvasClass) {
             this.sprayCanvas = new SprayCanvasClass(this, {
-                worldWidth: 8000,
-                worldHeight: 1080,
-                worldOffsetX: 2000,
+                surfaceBounds: LAYOUT.paintmask,
+                chunkWidth: 4096,
+                maskKeys: [
+                    'street_paintmask_surface_chunk_0',
+                    'street_paintmask_surface_chunk_1',
+                ],
                 depth: 10,
-                maskImage: this.maskImage,
             });
             this.sprayEffects = this.sprayCanvas.renderTexture;
+            this.maskImage = null;
         } else {
+            if (this.make && this.make.image) {
+                this.maskImage = this.make.image({
+                    x: LAYOUT.paintmask.x,
+                    y: LAYOUT.paintmask.y,
+                    key: 'street_paintmask',
+                    add: false,
+                }).setOrigin(0, 0);
+            }
             this.sprayEffects = this.add.graphics();
             this.sprayEffects.setDepth(10);
             if (this.maskImage && this.maskImage.createBitmapMask) {
@@ -505,9 +507,15 @@
             return;
         }
         if (this.touchControls && this.touchControls.isVisible) {
-            const TouchLogic = (typeof TouchControlsLogic !== 'undefined') ? TouchControlsLogic : require('../logic/touchControlsLogic.js');
-            if (TouchLogic && TouchLogic.isPointInControlZone(pointer.x, pointer.y)) {
-                return;
+            if (typeof this.touchControls.isPointInControlZone === 'function') {
+                if (this.touchControls.isPointInControlZone(pointer.x, pointer.y)) {
+                    return;
+                }
+            } else {
+                const TouchLogic = (typeof TouchControlsLogic !== 'undefined') ? TouchControlsLogic : require('../logic/touchControlsLogic.js');
+                if (TouchLogic && TouchLogic.isPointInControlZone(pointer.x, pointer.y)) {
+                    return;
+                }
             }
         }
         const TouchPointerModeModule = (typeof TouchPointerMode !== 'undefined')

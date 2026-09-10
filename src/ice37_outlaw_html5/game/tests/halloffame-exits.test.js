@@ -30,6 +30,10 @@ function createHallSceneHarness() {
             visible: true,
             children: [],
             add(items) { this.children.push(...(Array.isArray(items) ? items : [items])); return this; },
+            beginDraw() { return this; },
+            batchDraw() { return this; },
+            draw() { return this; },
+            endDraw() { return this; },
             clear() { return this; },
             createGeometryMask() { return {}; },
             disableInteractive() { return this; },
@@ -71,6 +75,7 @@ function createHallSceneHarness() {
     };
     const sandbox = {
         HallOfFameNativeLayout: require('../js/halloffame/halloffameNativeLayout.js'),
+        PaintSurfaceGeometry: require('../js/logic/paintSurfaceGeometry.js'),
         SprayPaint: require('../js/logic/sprayPaint.js'),
         ToolCursor: require('../js/logic/toolCursor.js'),
         BackpackPalette: require('../js/logic/backpackPalette.js'),
@@ -272,17 +277,20 @@ test('handles returnToMenu transition and prevents duplicate triggers', () => {
     assert.equal(scene.startedScene, null);
 });
 
-test('keeps paint graphics outside the world container and synchronizes their offset', () => {
+test('keeps paint graphics outside the world container and synchronizes their offset without independent mask movement', () => {
     const { scene } = createHallSceneHarness();
     scene.create();
 
     assert.equal(scene.worldLayer.children.includes(scene.sprayEffects), false);
-    assert.ok(scene.maskImage);
-    const initialMaskX = scene.maskImage.x;
+    assert.equal(scene.sprayCanvas.chunks.length, 1);
+    assert.equal(scene.sprayCanvas.chunks[0].renderTexture.x, scene.layout.paintmask.x);
+    assert.equal(scene.sprayCanvas.chunks[0].maskImage.x, scene.layout.paintmask.x);
+
     scene.worldLayer.x = -75;
     scene.syncSprayMaskWorldPosition();
-    assert.equal(scene.sprayEffects.x, -75);
-    assert.equal(scene.maskImage.x, initialMaskX - 75);
+    assert.equal(scene.sprayCanvas.chunks[0].renderTexture.x, scene.layout.paintmask.x - 75);
+    assert.equal(scene.sprayCanvas.chunks[0].maskImage.x, scene.layout.paintmask.x - 75);
+    assert.equal(scene.maskImage, undefined);
 });
 
 test('keeps every player presentation above the clipped paint layer', () => {

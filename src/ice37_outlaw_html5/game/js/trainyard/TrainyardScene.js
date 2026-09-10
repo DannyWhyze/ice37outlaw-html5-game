@@ -78,34 +78,23 @@
         this.worldLayer.add([this.exitShadowLeft, this.exitLeft, this.exitShadowRight, this.exitRight]);
 
         // Layer 1: thePad (Spray effects canvas via SprayCanvas prefab) and paintmask (Shape 143)
-        if (this.make && this.make.image) {
-            this.maskImage = this.make.image({
-                x: LAYOUT.paintmask.x,
-                y: LAYOUT.paintmask.y,
-                key: 'trainyard_paintmask',
-                add: false,
-            }).setOrigin(0, 0);
-        }
-
         const SprayCanvasClass = (typeof SprayCanvas !== 'undefined')
             ? SprayCanvas
             : ((typeof require !== 'undefined') ? require('../prefabs/SprayCanvas.js').SprayCanvas : null);
         if (SprayCanvasClass) {
             this.sprayCanvas = new SprayCanvasClass(this, {
-                worldWidth: 11000,
-                worldHeight: 1080,
-                worldOffsetX: 1000,
+                surfaceBounds: LAYOUT.paintmask,
+                chunkWidth: 4096,
+                maskKeys: [
+                    'trainyard_paintmask_surface_chunk_0',
+                    'trainyard_paintmask_surface_chunk_1',
+                ],
                 depth: 10,
-                maskImage: this.maskImage,
             });
             this.sprayEffects = this.sprayCanvas.renderTexture;
         } else {
             this.sprayEffects = this.add.graphics();
             this.sprayEffects.setDepth(10);
-            if (this.maskImage && this.maskImage.createBitmapMask) {
-                const mask = this.maskImage.createBitmapMask();
-                this.sprayEffects.setMask(mask);
-            }
         }
         this.syncPaintWorldPosition();
 
@@ -494,9 +483,6 @@
         } else if (this.sprayEffects) {
             this.sprayEffects.setPosition(x, y);
         }
-        if (this.maskImage) {
-            this.maskImage.setPosition(this.layout.paintmask.x + x, this.layout.paintmask.y + y);
-        }
         if (this.copLayer) {
             this.copLayer.setPosition(x, y);
         }
@@ -511,9 +497,15 @@
             return;
         }
         if (this.touchControls && this.touchControls.isVisible) {
-            const TouchLogic = (typeof TouchControlsLogic !== 'undefined') ? TouchControlsLogic : require('../logic/touchControlsLogic.js');
-            if (TouchLogic && TouchLogic.isPointInControlZone(pointer.x, pointer.y)) {
-                return;
+            if (typeof this.touchControls.isPointInControlZone === 'function') {
+                if (this.touchControls.isPointInControlZone(pointer.x, pointer.y)) {
+                    return;
+                }
+            } else {
+                const TouchLogic = (typeof TouchControlsLogic !== 'undefined') ? TouchControlsLogic : require('../logic/touchControlsLogic.js');
+                if (TouchLogic && TouchLogic.isPointInControlZone(pointer.x, pointer.y)) {
+                    return;
+                }
             }
         }
         const TouchPointerModeModule = (typeof TouchPointerMode !== 'undefined')

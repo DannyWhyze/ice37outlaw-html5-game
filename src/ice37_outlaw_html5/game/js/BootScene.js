@@ -91,8 +91,12 @@ class BootScene extends Phaser.Scene {
         this.load.image('halloffame_paintmask', 'assets/images/halloffame/halloffame_paintmask.png');
         this.load.image('street_background', 'assets/images/street/street_background.jpg');
         this.load.image('street_paintmask', 'assets/images/street/street_paintmask.png');
+        this.load.image('street_paintmask_surface_chunk_0', 'assets/images/street/street_paintmask_surface_chunk_0.png');
+        this.load.image('street_paintmask_surface_chunk_1', 'assets/images/street/street_paintmask_surface_chunk_1.png');
         this.load.image('trainyard_background', 'assets/images/trainyard/trainyard_background.jpg');
         this.load.image('trainyard_paintmask', 'assets/images/trainyard/trainyard_paintmask.png');
+        this.load.image('trainyard_paintmask_surface_chunk_0', 'assets/images/trainyard/trainyard_paintmask_surface_chunk_0.png');
+        this.load.image('trainyard_paintmask_surface_chunk_1', 'assets/images/trainyard/trainyard_paintmask_surface_chunk_1.png');
         this.load.image('halloffame_sprayer', 'assets/images/prefabs/player/player_idle.png');
         const loadedWalkNativeKeys = new Set();
         ['walk_frame_01.png', 'walk_frame_03.png', 'walk_frame_06.png', 'walk_frame_08.png', 'walk_frame_10.png', 'walk_frame_14.png'].forEach((fileName) => {

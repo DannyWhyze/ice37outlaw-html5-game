@@ -381,18 +381,24 @@ test('provides exact native street paintmask placement', () => {
     assert.equal(LAYOUT.paintmask.height, 1393);
 });
 
-test('synchronizes sprayEffects and maskImage on world scroll', () => {
+test('synchronizes sprayCanvas chunks and maskImages on world scroll without independent mask movement', () => {
     const { scene, cursorKeys } = createMockStreetScene();
     scene.create();
 
-    assert.equal(scene.sprayEffects.x, 0);
-    assert.equal(scene.maskImage.x, LAYOUT.paintmask.x);
+    assert.equal(scene.sprayCanvas.chunks.length, 2);
+    assert.equal(scene.sprayCanvas.chunks[0].renderTexture.x, LAYOUT.paintmask.x);
+    assert.equal(scene.sprayCanvas.chunks[0].maskImage.x, LAYOUT.paintmask.x);
+    assert.equal(scene.sprayCanvas.chunks[1].renderTexture.x, LAYOUT.paintmask.x + 4096);
+    assert.equal(scene.sprayCanvas.chunks[1].maskImage.x, LAYOUT.paintmask.x + 4096);
 
     cursorKeys.right.isDown = true;
     scene.update(0, 100);
 
-    assert.equal(scene.sprayEffects.x, scene.worldLayer.x);
-    assert.equal(scene.maskImage.x, LAYOUT.paintmask.x + scene.worldLayer.x);
+    const worldX = scene.worldLayer.x;
+    assert.equal(scene.sprayCanvas.chunks[0].renderTexture.x, LAYOUT.paintmask.x + worldX);
+    assert.equal(scene.sprayCanvas.chunks[0].maskImage.x, LAYOUT.paintmask.x + worldX);
+    assert.equal(scene.sprayCanvas.chunks[1].renderTexture.x, LAYOUT.paintmask.x + 4096 + worldX);
+    assert.equal(scene.sprayCanvas.chunks[1].maskImage.x, LAYOUT.paintmask.x + 4096 + worldX);
 });
 
 test('handles spray painting and stamping in StreetScene', () => {
