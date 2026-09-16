@@ -14,6 +14,13 @@ This project is a modern HTML5 porting and preservation effort of the original F
 
 ---
 
+## Live Demo / Play Online
+
+Play the latest build directly in the browser:
+- **Web Link:** [https://dannywhyze.github.io/ice37outlaw-html5-game/](https://dannywhyze.github.io/ice37outlaw-html5-game/)
+
+---
+
 ## Quick Start (Execution Commands)
 
 Run all terminal commands from the repository root: `E:\VS_DW\PlayGround\Project_idea\outlaws_lob_game`.
