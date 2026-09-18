@@ -1,5 +1,9 @@
 # Outlaw — Native HTML5 Game (Lords of Brooklyn Remake)
 
+<p align="center">
+  <img src="readme_images/start.png" alt="Outlaw - Lords of Brooklyn Title Screen" width="800" />
+</p>
+
 Enterprise repository for modernizing and preserving **Lords of Brooklyn / Outlaw** (2D Urban Graffiti & Street Fighter Flash Game) as a native HTML5 Canvas application.
 
 ---
@@ -17,7 +21,7 @@ This project is a modern HTML5 porting and preservation effort of the original F
 ## Live Demo / Play Online
 
 Play the latest build directly in the browser:
-- **Web Link:** [https://dannywhyze.github.io/ice37outlaw-html5-game/](https://dannywhyze.github.io/ice37outlaw-html5-game/)
+- **Web Link:** [https://dannywhyze.github.io/ice37outlaw-html5-game/]
 
 ---
 
@@ -86,9 +90,29 @@ outlaws_lob_game/
 ## Engine Architecture & Scenes
 
 - **`HomeScene`**: Hideout room featuring window train animations, background shake, dedicated audio (`trainspotting_80-519.mp3`), and persistent floor spray-can inventory.
+
+<p align="center">
+  <img src="readme_images/home.png" alt="Home Scene - Hideout Room" width="750" />
+</p>
+
 - **`MenuScene`**: Dynamic scene navigator (`HALL OF FAME`, `STREET BOMBING`, `TRAINYARD BOMBING`, `GALLERY`).
+
+<p align="center">
+  <img src="readme_images/main_menu.png" alt="Main Menu Scene" width="750" />
+</p>
+
 - **`HallOfFameScene`**: Submarine graffiti train hall with real-time vector spray mask (Shape 114), custom tool cursors (spray can, paint roller, backpack hover), tool palette, and emergency exits.
+
+<p align="center">
+  <img src="readme_images/hallofame.png" alt="Hall of Fame Scene" width="750" />
+</p>
+
 - **`StreetScene`**: Horizontal scrolling street alleyway panorama (`162.jpg`) with beat 'em up combat (boxing, kicking), backpack spray palette, emergency exit doors, and cop spawning logic.
+
+<p align="center">
+  <img src="readme_images/street.png" alt="Street Bombing Scene" width="750" />
+</p>
+
 - **`TrainyardScene`**: Trainyard subway train spray canvas scene with interactive spraying, cop AI, and environmental hazards.
 - **`Prefabs Architecture`**: Decoupled interactive actors under `src/ice37_outlaw_html5/game/js/prefabs/` (`Player`, `Cop`, `Backpack`, `SprayCanvas`, `CameraHud`, `GalleryOverlay`, `DevControls`, `Blende`, `Hud`) guaranteeing consistent combat state machines, hitboxes, and controls across all scenes.
 
